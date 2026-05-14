@@ -1,3 +1,4 @@
+import Batch03Features from './pages/Batch03Features';
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import Login from './pages/Login'
@@ -33,6 +34,10 @@ import AICostOptimization from './pages/AICostOptimization'
 import AITaxDeductions from './pages/AITaxDeductions'
 import AIAuditReport from './pages/AIAuditReport'
 import AICurrencyValidator from './pages/AICurrencyValidator'
+import AIAdminTools from './pages/AIAdminTools'
+import AIBatchTools from './pages/AIBatchTools'
+import AIAgenticAudit from './pages/AIAgenticAudit'
+import Integrations from './pages/Integrations'
 
 function Sidebar({ user, onLogout }) {
   const navigate = useNavigate()
@@ -82,6 +87,12 @@ function Sidebar({ user, onLogout }) {
       { path: '/ai/trip-planner', icon: '\u{1F5FA}\uFE0F', label: 'Trip Budget Planner' },
       { path: '/ai/currency-validator', icon: '\u{1F4B1}', label: 'Currency Converter' },
       { path: '/ai/audit-report', icon: '\u{1F4D3}', label: 'Audit Report Gen' },
+    ]},
+    { section: 'AI - Admin', items: [
+      { path: '/ai/admin-tools', icon: '\u{1F527}', label: 'Admin Tools' },
+      { path: '/ai/batch-tools', icon: '\u{1F9F0}', label: 'Batch & Verify' },
+      { path: '/ai/agentic-audit', icon: '\u{1F575}️', label: 'Agentic Audit' },
+      { path: '/integrations', icon: '\u{1F517}', label: 'Integrations' },
     ]},
   ]
 
@@ -167,6 +178,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+          <Route path="/batch03" element={<Batch03Features />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />} />
         {/* Management */}
         <Route path="/dashboard" element={<P {...p}><Dashboard /></P>} />
@@ -205,6 +217,11 @@ export default function App() {
         <Route path="/ai/trip-planner" element={<P {...p}><AITripPlanner /></P>} />
         <Route path="/ai/currency-validator" element={<P {...p}><AICurrencyValidator /></P>} />
         <Route path="/ai/audit-report" element={<P {...p}><AIAuditReport /></P>} />
+        {/* AI - Admin */}
+        <Route path="/ai/admin-tools" element={<P {...p}><AIAdminTools /></P>} />
+        <Route path="/ai/batch-tools" element={<P {...p}><AIBatchTools /></P>} />
+        <Route path="/ai/agentic-audit" element={<P {...p}><AIAgenticAudit /></P>} />
+        <Route path="/integrations" element={<P {...p}><Integrations /></P>} />
         {/* Catch-all */}
         <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
       </Routes>

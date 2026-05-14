@@ -3,17 +3,29 @@ const db = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Get all expense reports
+// Get all expense reports (paginated)
 router.get('/reports', auth, async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+
+    const countResult = await db.query('SELECT COUNT(*) FROM expense_reports');
+    const total = parseInt(countResult.rows[0].count);
+
     const result = await db.query(`
       SELECT er.*, e.full_name as employee_name, d.name as department_name
       FROM expense_reports er
       JOIN employees e ON er.employee_id = e.id
       LEFT JOIN departments d ON er.department_id = d.id
       ORDER BY er.created_at DESC
-    `);
-    res.json(result.rows);
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+
+    res.json({
+      data: result.rows,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -58,6 +70,9 @@ router.get('/reports/:id', auth, async (req, res) => {
 router.post('/reports', auth, async (req, res) => {
   try {
     const { title, description, employee_id, department_id, trip_destination, trip_start_date, trip_end_date } = req.body;
+    if (!title || !employee_id) {
+      return res.status(400).json({ error: 'title and employee_id are required' });
+    }
     const reportNum = `RPT-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`;
     const result = await db.query(`
       INSERT INTO expense_reports (report_number, employee_id, title, description, department_id, trip_destination, trip_start_date, trip_end_date)
@@ -127,6 +142,9 @@ router.get('/reports/:id/items', auth, async (req, res) => {
 router.post('/items', auth, async (req, res) => {
   try {
     const { report_id, category_id, vendor_id, description, amount, expense_date, has_receipt, notes } = req.body;
+    if (!report_id || amount == null || !category_id) {
+      return res.status(400).json({ error: 'report_id, amount, and category are required' });
+    }
     const result = await db.query(`
       INSERT INTO expense_items (report_id, category_id, vendor_id, description, amount, expense_date, has_receipt, notes)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)

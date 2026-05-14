@@ -1,8 +1,12 @@
 const express = require('express');
 const db = require('../db');
 const auth = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const { callOpenRouter } = require('../services/openrouter');
 const router = express.Router();
+
+// Apply rate limiter to all AI routes
+router.use(aiRateLimiter);
 
 // 1. AI Fraud Detection - Analyze report for fraud indicators
 router.post('/fraud-detection/:reportId', auth, async (req, res) => {
@@ -691,6 +695,12 @@ Provide:
 6. Industry best practice comparison
 7. Priority ranking for policy changes
 8. Estimated impact of each recommendation`
+    );
+
+    // Persist to ai_analysis_results so apply-policy-suggestions can use it
+    await db.query(
+      'INSERT INTO ai_analysis_results (analysis_type, result, model_used) VALUES ($1, $2, $3)',
+      ['policy_suggestions', JSON.stringify({ content: result.content }), result.model]
     );
 
     res.json({ analysis: result.content, model: result.model, usage: result.usage });
