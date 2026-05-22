@@ -1,4 +1,9 @@
 import Batch03Features from './pages/Batch03Features';
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
+
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import Login from './pages/Login'
@@ -21,6 +26,7 @@ import AICategoriztion from './pages/AICategorization'
 import AIBudgetForecast from './pages/AIBudgetForecast'
 import AITripPlanner from './pages/AITripPlanner'
 import AIVendorRisk from './pages/AIVendorRisk'
+import MerchantRisk from './pages/MerchantRisk'
 import AISpendingAnalysis from './pages/AISpendingAnalysis'
 import AISmartSearch from './pages/AISmartSearch'
 import AIReceiptAnalysis from './pages/AIReceiptAnalysis'
@@ -65,6 +71,7 @@ function Sidebar({ user, onLogout }) {
       { path: '/ai/anomaly-detection', icon: '\u{1F6A8}', label: 'Anomaly Detection' },
       { path: '/ai/duplicates', icon: '\u{1F50D}', label: 'Duplicate Detection' },
       { path: '/ai/vendor-risk', icon: '\u26A0\uFE0F', label: 'Vendor Risk' },
+      { path: '/ai/merchant-risk', icon: '\u26A0\uFE0F', label: 'Merchant Risk' },
       { path: '/ai/employee-risk', icon: '\u{1F464}', label: 'Employee Risk Profile' },
     ]},
     { section: 'AI - Compliance & Policy', items: [
@@ -178,6 +185,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
           <Route path="/batch03" element={<Batch03Features />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />} />
         {/* Management */}
@@ -198,6 +209,7 @@ export default function App() {
         <Route path="/ai/anomaly-detection" element={<P {...p}><AIAnomalyDetection /></P>} />
         <Route path="/ai/duplicates" element={<P {...p}><AIDuplicateDetection /></P>} />
         <Route path="/ai/vendor-risk" element={<P {...p}><AIVendorRisk /></P>} />
+        <Route path="/ai/merchant-risk" element={<P {...p}><MerchantRisk /></P>} />
         <Route path="/ai/employee-risk" element={<P {...p}><AIEmployeeRisk /></P>} />
         {/* AI - Compliance & Policy */}
         <Route path="/ai/policy-check" element={<P {...p}><AIPolicyCheck /></P>} />

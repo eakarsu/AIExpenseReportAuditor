@@ -32,6 +32,7 @@ app.use('/api/compliance-automation', require('./routes/complianceAutomation'));
 app.use('/api/tax-optimization', require('./routes/taxOptimization'));
 app.use('/api/vendor-fraud-detection', require('./routes/vendorFraudDetection'));
 app.use('/api/travel-policy', require('./routes/travelPolicyEnforcement'));
+app.use('/api/merchant-risk', require('./routes/merchantRisk'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
