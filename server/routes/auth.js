@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
+const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 
 // Login
@@ -28,12 +29,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get demo credentials
-router.get('/demo-credentials', (req, res) => {
-  res.json({
-    email: 'admin@company.com',
-    password: 'password123'
-  });
+router.get('/me', authenticateToken, (req, res) => {
+  res.json({ user: req.user });
 });
 
 module.exports = router;

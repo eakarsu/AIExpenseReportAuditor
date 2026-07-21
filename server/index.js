@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+require('./governance/runtime').validateRuntime();
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
@@ -33,17 +34,11 @@ app.use('/api/tax-optimization', require('./routes/taxOptimization'));
 app.use('/api/vendor-fraud-detection', require('./routes/vendorFraudDetection'));
 app.use('/api/travel-policy', require('./routes/travelPolicyEnforcement'));
 app.use('/api/merchant-risk', require('./routes/merchantRisk'));
+app.use('/api/governed-workflow', require('./governance/router'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-
-// === Batch 03 Gaps & Frontend Mounts ===
-try {
-  const _batch03 = require('./routes/batch03Gaps');
-  if (typeof authenticateToken === 'function') app.use('/api', authenticateToken, _batch03);
-  else app.use('/api', _batch03);
-} catch (_e) { /* batch03 gap routes optional */ }
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

@@ -1,85 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "============================================"
-echo "  AI Expense Report Auditor - Starting..."
-echo "============================================"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-# Load env
-if [ -f .env ]; then
-  export $(cat .env | grep -v '^#' | xargs)
+project_root="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -f "$project_root/.env" ]]; then
+  echo "Missing .env. Copy .env.example and set real secrets." >&2
+  exit 1
 fi
+set -a
+# shellcheck disable=SC1091
+source "$project_root/.env"
+set +a
 
-BACKEND_PORT=${BACKEND_PORT:-3001}
-FRONTEND_PORT=${FRONTEND_PORT:-3000}
-
-# Kill processes on used ports
-echo -e "${YELLOW}Cleaning up ports $BACKEND_PORT and $FRONTEND_PORT...${NC}"
-lsof -ti:$BACKEND_PORT | xargs kill -9 2>/dev/null
-lsof -ti:$FRONTEND_PORT | xargs kill -9 2>/dev/null
-sleep 1
-
-# Check PostgreSQL
-echo -e "${YELLOW}Checking PostgreSQL...${NC}"
-if ! command -v psql &> /dev/null; then
-  echo -e "${RED}PostgreSQL not found. Please install it.${NC}"
+if [[ ! -d "$project_root/./node_modules" || ! -d "$project_root/client/node_modules" ]]; then
+  echo "Dependencies are absent. Run ./scripts/bootstrap.sh explicitly." >&2
   exit 1
 fi
 
-# Check if PostgreSQL is running
-if ! pg_isready -q 2>/dev/null; then
-  echo -e "${YELLOW}Starting PostgreSQL...${NC}"
-  brew services start postgresql@14 2>/dev/null || brew services start postgresql 2>/dev/null || {
-    echo -e "${RED}Could not start PostgreSQL. Please start it manually.${NC}"
-    exit 1
-  }
-  sleep 2
-fi
+backend_pid=""
+frontend_pid=""
+cleanup() {
+  [[ -n "$backend_pid" ]] && kill "$backend_pid" 2>/dev/null || true
+  [[ -n "$frontend_pid" ]] && kill "$frontend_pid" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
 
-# Create database and user if not exists
-echo -e "${YELLOW}Setting up database...${NC}"
-psql postgres -c "CREATE USER expense_user WITH PASSWORD 'expense_pass';" 2>/dev/null
-psql postgres -c "ALTER USER expense_user CREATEDB;" 2>/dev/null
-psql postgres -c "CREATE DATABASE expense_auditor OWNER expense_user;" 2>/dev/null
-psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE expense_auditor TO expense_user;" 2>/dev/null
+(cd "$project_root/." && node server/index.js) &
+backend_pid=$!
+(cd "$project_root/client" && npm run dev) &
+frontend_pid=$!
 
-# Install dependencies
-echo -e "${YELLOW}Installing backend dependencies...${NC}"
-npm install --silent
-
-echo -e "${YELLOW}Installing frontend dependencies...${NC}"
-cd client && npm install --silent && cd ..
-
-# Seed database
-echo -e "${YELLOW}Seeding database...${NC}"
-node server/seeds/seed.js
-
-if [ $? -eq 0 ]; then
-  echo -e "${GREEN}Database seeded successfully!${NC}"
-else
-  echo -e "${RED}Database seed failed. Check your PostgreSQL connection.${NC}"
-  exit 1
-fi
-
-# Start application with hot reload
-echo ""
-echo -e "${GREEN}============================================${NC}"
-echo -e "${GREEN}  Starting AI Expense Report Auditor${NC}"
-echo -e "${GREEN}  Backend:  http://localhost:$BACKEND_PORT${NC}"
-echo -e "${GREEN}  Frontend: http://localhost:$FRONTEND_PORT${NC}"
-echo -e "${GREEN}============================================${NC}"
-echo ""
-echo -e "${YELLOW}Demo Login: admin@company.com / password123${NC}"
-echo ""
-
-# Start with hot reload using concurrently
-npx concurrently \
-  --names "API,WEB" \
-  --prefix-colors "blue,green" \
-  "npx nodemon --watch server server/index.js" \
-  "cd client && npx vite --port $FRONTEND_PORT --host"
+echo "Started project-owned processes only: backend=$backend_pid frontend=$frontend_pid"
+wait "$backend_pid" "$frontend_pid"
