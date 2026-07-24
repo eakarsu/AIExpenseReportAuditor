@@ -4,6 +4,9 @@ require('dotenv').config();
 async function callOpenRouter(systemPrompt, userMessage) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022';
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY is not configured');
+  const baseUrl = (process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/$/, '');
+  const endpoint = new URL(`${baseUrl}/chat/completions`);
 
   const body = JSON.stringify({
     model,
@@ -17,8 +20,9 @@ async function callOpenRouter(systemPrompt, userMessage) {
 
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: 'openrouter.ai',
-      path: '/api/v1/chat/completions',
+      hostname: endpoint.hostname,
+      port: endpoint.port || 443,
+      path: endpoint.pathname + endpoint.search,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -39,10 +43,14 @@ async function callOpenRouter(systemPrompt, userMessage) {
             reject(new Error(parsed.error.message || 'OpenRouter API error'));
             return;
           }
-          const content = parsed.choices?.[0]?.message?.content || '';
+          const content = parsed.choices?.[0]?.message?.content;
+          if (!content) {
+            reject(new Error('OpenRouter returned an empty response'));
+            return;
+          }
           resolve({
             content,
-            model: parsed.model,
+            model: parsed.model || model,
             usage: parsed.usage,
           });
         } catch (e) {
@@ -59,7 +67,10 @@ async function callOpenRouter(systemPrompt, userMessage) {
 
 async function callOpenRouterVision(systemPrompt, textPrompt, imageBase64, mimeType) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = 'anthropic/claude-3-5-sonnet-20241022';
+  const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022';
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY is not configured');
+  const baseUrl = (process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/$/, '');
+  const endpoint = new URL(`${baseUrl}/chat/completions`);
 
   const body = JSON.stringify({
     model,
@@ -82,8 +93,9 @@ async function callOpenRouterVision(systemPrompt, textPrompt, imageBase64, mimeT
 
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: 'openrouter.ai',
-      path: '/api/v1/chat/completions',
+      hostname: endpoint.hostname,
+      port: endpoint.port || 443,
+      path: endpoint.pathname + endpoint.search,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,10 +116,14 @@ async function callOpenRouterVision(systemPrompt, textPrompt, imageBase64, mimeT
             reject(new Error(parsed.error.message || 'OpenRouter API error'));
             return;
           }
-          const content = parsed.choices?.[0]?.message?.content || '';
+          const content = parsed.choices?.[0]?.message?.content;
+          if (!content) {
+            reject(new Error('OpenRouter returned an empty response'));
+            return;
+          }
           resolve({
             content,
-            model: parsed.model,
+            model: parsed.model || model,
             usage: parsed.usage,
           });
         } catch (e) {
