@@ -34,8 +34,8 @@ export default function Login({ onLogin }) {
 
         {error && <div className="error-msg">{error}</div>}
 
-        <button type="button" className="demo-btn" onClick={fillDemo}>
-          {'\u{1F511}'} Fill Demo Credentials
+        <button type="button" className="demo-btn" onClick={fillDemo} aria-label="Auto Fill Demo Credentials">
+          {'\u{1F511}'} Auto Fill Demo Credentials
         </button>
 
         <form onSubmit={handleSubmit}>
