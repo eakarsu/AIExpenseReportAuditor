@@ -6,10 +6,21 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
+  const demoAutofillEnabled = import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true'
 
-  const fillDemo = () => {
-    setEmail(import.meta.env.VITE_DEMO_EMAIL || '')
-    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '')
+  const fillDemo = async () => {
+    setDemoLoading(true)
+    setError('')
+    try {
+      const credentials = await api.getDemoCredentials()
+      setEmail(credentials.email)
+      setPassword(credentials.password)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setDemoLoading(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -21,8 +32,9 @@ export default function Login({ onLogin }) {
       onLogin(data)
     } catch (err) {
       setError(err.message)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -34,9 +46,11 @@ export default function Login({ onLogin }) {
 
         {error && <div className="error-msg">{error}</div>}
 
-        <button type="button" className="demo-btn" onClick={fillDemo} aria-label="Auto Fill Demo Credentials">
-          {'\u{1F511}'} Auto Fill Demo Credentials
-        </button>
+        {demoAutofillEnabled && (
+          <button type="button" className="demo-btn" onClick={fillDemo} disabled={demoLoading} aria-label="Fill Demo Credentials">
+            {'\u{1F511}'} {demoLoading ? 'Loading Demo Credentials...' : 'Fill Demo Credentials'}
+          </button>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

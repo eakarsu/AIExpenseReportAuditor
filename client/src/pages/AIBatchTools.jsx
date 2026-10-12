@@ -1,3 +1,4 @@
+import FormattedAIReport from "../components/FormattedAIReport";
 import React, { useState } from 'react'
 import AIResultDisplay from '../components/AIResultDisplay'
 
@@ -139,9 +140,7 @@ export default function AIBatchTools() {
               <h4 style={{ marginBottom: 8 }}>
                 {batchResult.succeeded}/{batchResult.count} succeeded
               </h4>
-              <pre style={{ background: '#0f172a', color: '#e2e8f0', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12, maxHeight: 360 }}>
-                {JSON.stringify(batchResult.results, null, 2)}
-              </pre>
+              <FormattedAIReport response={batchResult.results} />
             </div>
           )}
         </div>
@@ -158,27 +157,27 @@ export default function AIBatchTools() {
           <form onSubmit={runMileage}>
             <div className="form-group">
               <label>Origin</label>
-              <input value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="123 Main St, Boston, MA" required />
+              <input data-ai-field={"origin"} value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="123 Main St, Boston, MA" required />
             </div>
             <div className="form-group">
               <label>Destination</label>
-              <input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="500 5th Ave, New York, NY" required />
+              <input data-ai-field={"destination"} value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="500 5th Ave, New York, NY" required />
             </div>
             <div className="form-group">
               <label>Claimed Miles</label>
-              <input type="number" step="0.1" value={claimedMiles} onChange={(e) => setClaimedMiles(e.target.value)} required />
+              <input data-ai-field={"claimedMiles"} type="number" step="0.1" value={claimedMiles} onChange={(e) => setClaimedMiles(e.target.value)} required />
             </div>
             <div className="form-group">
               <label>Vehicle (optional)</label>
-              <input value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="Personal sedan" />
+              <input data-ai-field={"vehicle"} value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="Personal sedan" />
             </div>
             <div className="form-group">
               <label>Rate per Mile (optional)</label>
-              <input type="number" step="0.01" value={ratePerMile} onChange={(e) => setRatePerMile(e.target.value)} placeholder="0.67" />
+              <input data-ai-field={"ratePerMile"} type="number" step="0.01" value={ratePerMile} onChange={(e) => setRatePerMile(e.target.value)} placeholder="0.67" />
             </div>
             <div className="form-group">
               <label>Notes (optional)</label>
-              <textarea value={mileageNotes} onChange={(e) => setMileageNotes(e.target.value)} rows={2} />
+              <textarea data-ai-field={"mileageNotes"} value={mileageNotes} onChange={(e) => setMileageNotes(e.target.value)} rows={2} />
             </div>
             <button type="submit" className="btn btn-primary" disabled={mileageLoading}>
               {mileageLoading ? 'Verifying...' : 'Verify Mileage'}
@@ -188,9 +187,7 @@ export default function AIBatchTools() {
           {mileageResult && (
             <div style={{ marginTop: 16 }}>
               {mileageResult.verification && (
-                <pre style={{ background: '#0f172a', color: '#e2e8f0', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12 }}>
-                  {JSON.stringify(mileageResult.verification, null, 2)}
-                </pre>
+                <FormattedAIReport response={mileageResult.verification} />
               )}
               {mileageResult.raw_analysis && (
                 <AIResultDisplay

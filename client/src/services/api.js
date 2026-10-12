@@ -98,6 +98,7 @@ export const api = {
   getAuditLog: (id) => request(`/audit-logs/${id}`),
 
   // AI Features
+  getAIResults: (limit = 12) => request(`/ai/results?limit=${encodeURIComponent(limit)}`),
   fraudDetection: (reportId) => request(`/ai/fraud-detection/${reportId}`, { method: 'POST' }),
   policyCheck: (reportId) => request(`/ai/policy-check/${reportId}`, { method: 'POST' }),
   duplicateDetection: (reportId) => request(`/ai/duplicate-detection/${reportId}`, { method: 'POST' }),

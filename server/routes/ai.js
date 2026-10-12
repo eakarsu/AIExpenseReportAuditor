@@ -8,6 +8,24 @@ const router = express.Router();
 // Apply rate limiter to all AI routes
 router.use(aiRateLimiter);
 
+// Read-only history for professionally rendered saved AI results.
+router.get('/results', auth, async (req, res) => {
+  try {
+    const requestedLimit = Number.parseInt(req.query.limit, 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 50) : 12;
+    const saved = await db.query(
+      `SELECT id, report_id, item_id, analysis_type, result, confidence, model_used, created_at
+       FROM ai_analysis_results
+       ORDER BY created_at DESC
+       LIMIT $1`,
+      [limit]
+    );
+    res.json({ results: saved.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 1. AI Fraud Detection - Analyze report for fraud indicators
 router.post('/fraud-detection/:reportId', auth, async (req, res) => {
   try {

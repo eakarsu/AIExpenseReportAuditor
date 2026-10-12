@@ -44,6 +44,8 @@ import AIAdminTools from './pages/AIAdminTools'
 import AIBatchTools from './pages/AIBatchTools'
 import AIAgenticAudit from './pages/AIAgenticAudit'
 import Integrations from './pages/Integrations'
+import NativeAIControls from './components/NativeAIControls'
+import SavedAIResults from './components/SavedAIResults'
 
 function Sidebar({ user, onLogout }) {
   const navigate = useNavigate()
@@ -141,10 +143,19 @@ function Sidebar({ user, onLogout }) {
 }
 
 function AppLayout({ children, user, onLogout }) {
+  const location = useLocation()
+  const isAIWorkspace = location.pathname.startsWith('/ai/')
+  const content = isAIWorkspace ? (
+    <NativeAIControls context="expense auditing">
+      {children}
+      <SavedAIResults />
+    </NativeAIControls>
+  ) : children
+
   return (
     <div className="app-layout">
       <Sidebar user={user} onLogout={onLogout} />
-      <div className="main-content">{children}</div>
+      <div className="main-content">{content}</div>
     </div>
   )
 }

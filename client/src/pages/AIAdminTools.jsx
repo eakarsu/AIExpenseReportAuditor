@@ -1,3 +1,4 @@
+import FormattedAIReport from "../components/FormattedAIReport";
 import React, { useState } from 'react'
 import AIResultDisplay from '../components/AIResultDisplay'
 
@@ -133,9 +134,7 @@ export default function AIAdminTools() {
           {ocrResult && (
             <div style={{ marginTop: 16 }}>
               <h4 style={{ marginBottom: 8 }}>Extracted</h4>
-              <pre style={{ background: '#0f172a', color: '#e2e8f0', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12 }}>
-                {JSON.stringify(ocrResult.extracted, null, 2)}
-              </pre>
+              <FormattedAIReport response={ocrResult.extracted} />
               {ocrResult.raw_analysis && (
                 <AIResultDisplay
                   result={{ analysis: ocrResult.raw_analysis, model: ocrResult.model, usage: ocrResult.usage }}
@@ -172,9 +171,7 @@ export default function AIAdminTools() {
           {schedError && <div className="error-msg" style={{ marginTop: 12 }}>{schedError}</div>}
           {schedResult && (
             <div style={{ marginTop: 12 }}>
-              <pre style={{ background: '#0f172a', color: '#e2e8f0', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12 }}>
-                {JSON.stringify(schedResult, null, 2)}
-              </pre>
+              <FormattedAIReport response={schedResult} />
             </div>
           )}
         </div>
@@ -196,9 +193,7 @@ export default function AIAdminTools() {
           {applyResult && (
             <div style={{ marginTop: 16 }}>
               <h4 style={{ marginBottom: 8 }}>{applyResult.message}</h4>
-              <pre style={{ background: '#0f172a', color: '#e2e8f0', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12, maxHeight: 280 }}>
-                {JSON.stringify(applyResult.rules_created, null, 2)}
-              </pre>
+              <FormattedAIReport response={applyResult.rules_created} />
               {applyResult.raw_analysis && (
                 <AIResultDisplay
                   result={{ analysis: applyResult.raw_analysis, model: applyResult.model }}

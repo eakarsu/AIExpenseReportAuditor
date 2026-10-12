@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import FormattedAIReport from "../components/FormattedAIReport";
+import React, { useEffect, useState } from 'react'
 import AIResultDisplay from '../components/AIResultDisplay'
+import { api } from '../services/api'
 
 /**
  * Apply pass 5 wave-1 — agentic audit + synthetic-receipt detector.
@@ -35,9 +37,14 @@ function fileToBase64(file) {
 export default function AIAgenticAudit() {
   // ----- Agentic Audit -----
   const [reportId, setReportId] = useState('')
+  const [reports, setReports] = useState([])
   const [auditResult, setAuditResult] = useState(null)
   const [auditError, setAuditError] = useState('')
   const [auditLoading, setAuditLoading] = useState(false)
+
+  useEffect(() => {
+    api.getReports().then(setReports).catch(() => {})
+  }, [])
 
   const runAudit = async (e) => {
     e.preventDefault()
@@ -81,8 +88,13 @@ export default function AIAgenticAudit() {
         <h2>Agentic Audit (one report)</h2>
         <form onSubmit={runAudit}>
           <div className="form-group">
-            <label>Report ID</label>
-            <input type="number" value={reportId} onChange={(e) => setReportId(e.target.value)} placeholder="e.g. 42" />
+            <label>Expense report</label>
+            <select data-ai-field="reportId" value={reportId} onChange={(e) => setReportId(e.target.value)} required>
+              <option value="">Choose an existing report...</option>
+              {reports.map((report) => (
+                <option key={report.id} value={report.id}>{report.report_number} — {report.title}</option>
+              ))}
+            </select>
           </div>
           <button className="btn" type="submit" disabled={auditLoading}>{auditLoading ? 'Auditing...' : 'Run Agentic Audit'}</button>
         </form>
@@ -90,10 +102,8 @@ export default function AIAgenticAudit() {
         {auditResult && (
           <div style={{ marginTop: 16 }}>
             <h3>Result</h3>
-            <pre style={{ background: '#0a0a1f', color: '#9bc99b', padding: 14, borderRadius: 8, overflow: 'auto', fontSize: 12 }}>
-              {JSON.stringify({ stats: auditResult.stats, audit: auditResult.audit }, null, 2)}
-            </pre>
-            {auditResult.raw_analysis && <AIResultDisplay analysis={auditResult.raw_analysis} />}
+            <FormattedAIReport response={{ stats: auditResult.stats, audit: auditResult.audit }} />
+            {auditResult.raw_analysis && <AIResultDisplay result={{ analysis: auditResult.raw_analysis, model: auditResult.model, usage: auditResult.usage }} />}
           </div>
         )}
       </div>
@@ -112,9 +122,7 @@ export default function AIAgenticAudit() {
         {synthResult && (
           <div style={{ marginTop: 16 }}>
             <h3>Detection</h3>
-            <pre style={{ background: '#0a0a1f', color: '#9bc99b', padding: 14, borderRadius: 8, overflow: 'auto', fontSize: 12 }}>
-              {JSON.stringify(synthResult.detection, null, 2)}
-            </pre>
+            <FormattedAIReport response={synthResult.detection} />
             <p style={{ fontSize: 12, color: '#7a7a8a', marginTop: 8 }}>{synthResult.disclaimer}</p>
           </div>
         )}
