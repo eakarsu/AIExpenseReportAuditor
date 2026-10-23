@@ -24,6 +24,8 @@ app.use('/api/approvals', require('./routes/approvals'));
 app.use('/api/audit-logs', require('./routes/audit-logs'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/ai', require('./routes/aiNew'));
+app.use('/api/tasks', require('./routes/featurePack').tasksRouter);
+app.use('/api/feature-pack', require('./routes/featurePack').router);
 app.use('/api/scheduled-scans', require('./routes/scheduledScans'));
 app.use('/api/integrations', require('./routes/integrations'));
 app.use('/api/agentic-auditor', require('./routes/agenticAuditor'));

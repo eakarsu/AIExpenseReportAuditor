@@ -10,17 +10,27 @@ router.get('/reports', auth, async (req, res) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const offset = (page - 1) * limit;
 
-    const countResult = await db.query('SELECT COUNT(*) FROM expense_reports');
+    const q=String(req.query.q||req.query.search||'').trim(); const conds=[]; const params=[];
+    if(q){ params.push(`%${q}%`); conds.push(`(er.title ILIKE $${params.length} OR e.full_name ILIKE $${params.length})`); }
+    if(req.query.status){ params.push(req.query.status); conds.push(`er.status = $${params.length}`); }
+    const where=conds.length?`WHERE ${conds.join(' AND ')}`:'';
+    const countResult = await db.query(`SELECT COUNT(*) FROM expense_reports er JOIN employees e ON er.employee_id=e.id ${where}`, params);
     const total = parseInt(countResult.rows[0].count);
-
+    if(req.query.format==='csv'||req.query.format==='json'){
+      const all=await db.query(`SELECT er.*, e.full_name as employee_name, d.name as department_name FROM expense_reports er JOIN employees e ON er.employee_id = e.id LEFT JOIN departments d ON er.department_id = d.id ${where} ORDER BY er.created_at DESC LIMIT 1000`, params);
+      const {toCSV}=require('./featurePack');
+      if(req.query.format==='csv'){ res.setHeader('Content-Type','text/csv'); res.setHeader('Content-Disposition','attachment; filename="expenses.csv"'); return res.send(toCSV(all.rows)); }
+      res.setHeader('Content-Disposition','attachment; filename="expenses.json"'); return res.json(all.rows);
+    }
     const result = await db.query(`
       SELECT er.*, e.full_name as employee_name, d.name as department_name
       FROM expense_reports er
       JOIN employees e ON er.employee_id = e.id
       LEFT JOIN departments d ON er.department_id = d.id
+      ${where}
       ORDER BY er.created_at DESC
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
+      LIMIT $${params.length+1} OFFSET $${params.length+2}
+    `, [...params, limit, offset]);
 
     res.json({
       data: result.rows,
